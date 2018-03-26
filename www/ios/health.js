@@ -37,7 +37,6 @@ dataTypes['nutrition.water'] = 'HKQuantityTypeIdentifierDietaryWater';
 dataTypes['nutrition.caffeine'] = 'HKQuantityTypeIdentifierDietaryCaffeine';
 dataTypes['blood_glucose'] = 'HKQuantityTypeIdentifierBloodGlucose';
 dataTypes['insulin'] = 'HKQuantityTypeIdentifierInsulinDelivery';
-dataTypes['appleExerciseTime'] = 'HKQuantityTypeIdentifierAppleExerciseTime';
 
 var units = [];
 units['steps'] = 'count';
@@ -70,7 +69,6 @@ units['nutrition.water'] = 'ml';
 units['nutrition.caffeine'] = 'g';
 units['blood_glucose'] = 'mmol/L';
 units['insulin'] = 'IU';
-units['appleExerciseTime'] = 'min';
 
 Health.prototype.isAvailable = function (success, error) {
   window.plugins.healthkit.available(success, error);
@@ -261,6 +259,7 @@ Health.prototype.query = function (opts, onSuccess, onError) {
     window.plugins.healthkit.querySampleType(opts, function (data) {
       var result = [];
       var convertSamples = function (samples) {
+        console.log(data);
         for (var i = 0; i < samples.length; i++) {
           var res = {};
           res.startDate = new Date(samples[i].startDate);
@@ -288,8 +287,13 @@ Health.prototype.query = function (opts, onSuccess, onError) {
           } else {
             res.value = samples[i].quantity;
           }
-          if (data[i].unit) res.unit = samples[i].unit;
-          else if (opts.unit) res.unit = opts.unit;
+          if(data[i] != undefined) {
+            if (data[i].unit) res.unit = samples[i].unit;
+            else if (opts.unit) res.unit = opts.unit;
+          } else {
+            res.unit = "kcal";
+          }
+
           res.sourceName = samples[i].sourceName;
           res.sourceBundleId = samples[i].sourceBundleId;
           result.push(res);
@@ -324,8 +328,7 @@ Health.prototype.queryAggregated = function (opts, onSuccess, onError) {
   if ((opts.dataType !== 'steps') && (opts.dataType !== 'distance') &&
   (opts.dataType !== 'calories') && (opts.dataType !== 'calories.active') &&
   (opts.dataType !== 'calories.basal') && (opts.dataType !== 'activity') &&
-  (opts.dataType !== 'workouts') && (!opts.dataType.startsWith('nutrition')) && 
-  (opts.dataType !== 'appleExerciseTime')) {
+  (opts.dataType !== 'workouts') && (!opts.dataType.startsWith('nutrition'))) {
     // unsupported datatype
     onError('Datatype ' + opts.dataType + ' not supported in queryAggregated');
     return;
